@@ -17,7 +17,6 @@ namespace StrongNamer
         [Required]
         public ITaskItem[] Assemblies { get; set; }
 
-        [Required]
         public ITaskItem[] OutputAssemblies { get; set; }
 
         [Required]
