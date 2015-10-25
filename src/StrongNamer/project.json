@@ -1,0 +1,10 @@
+﻿{
+  "dependencies": {
+    "Mono.Cecil": "0.9.6.1"
+  },
+  "frameworks": {
+    "net452": {
+      "dependencies": { }
+    }
+  }
+}
