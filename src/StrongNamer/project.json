@@ -6,5 +6,8 @@
     "net452": {
       "dependencies": { }
     }
+  },
+  "runtimes": {
+    "win-any": { }
   }
 }
