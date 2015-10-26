@@ -4,10 +4,27 @@
 
   <Target Name="StrongNamerTarget"
           AfterTargets="AfterBuild">
+    
+    
+      
     <StrongNamer.AddStrongName
-          Assemblies="$(TargetPath)"
-          KeyFile="$(MSBuildThisFileDirectory)SharedKey.snk"
-      />
+          Assemblies="@(ReferencePath)"
+          SignedAssemblyFolder="$(IntermediateOutputPath)SignedAssemblies"
+          KeyFile="$(MSBuildThisFileDirectory)SharedKey.snk">
+      
+      <Output TaskParameter="SignedAssembliesToReference" ItemName="AssembliesToReference" />
+    
+    </StrongNamer.AddStrongName>
+  
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)"/>
+      <ReferencePath Include="@(AssembliesToReference)"/>
+    </ItemGroup>
+  
   </Target>
+  
+  <PropertyGroup>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);StrongNamerTarget</CoreCompileDependsOn>
+  </PropertyGroup>
   
 </Project>

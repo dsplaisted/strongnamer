@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,11 @@ namespace StrongNamer
         [Required]
         public ITaskItem[] Assemblies { get; set; }
 
-        public ITaskItem[] OutputAssemblies { get; set; }
+        [Required]
+        public ITaskItem SignedAssemblyFolder { get; set; }
+
+        [Output]
+        public ITaskItem[] SignedAssembliesToReference { get; set; }
 
         [Required]
         public ITaskItem KeyFile { get; set; }
@@ -29,13 +34,10 @@ namespace StrongNamer
                 return true;
             }
 
-            if (OutputAssemblies == null)
+            if (SignedAssemblyFolder == null || string.IsNullOrEmpty(SignedAssemblyFolder.ItemSpec))
             {
-                OutputAssemblies = Assemblies;
-            }
-            else if (OutputAssemblies.Length != Assemblies.Length)
-            {
-                Log.LogError($"{nameof(OutputAssemblies)} must have the same number of items as {nameof(Assemblies)}");
+                Log.LogError($"{nameof(SignedAssemblyFolder)} not specified");
+                return false;
             }
 
             if (KeyFile == null || string.IsNullOrEmpty(KeyFile.ItemSpec))
@@ -56,23 +58,32 @@ namespace StrongNamer
                 key = new StrongNameKeyPair(keyStream);
             }
 
+            SignedAssembliesToReference = new ITaskItem[Assemblies.Length];
+
             for (int i = 0; i < Assemblies.Length; i++)
             {
-                ProcessAssembly(Assemblies[i].ItemSpec, OutputAssemblies[i].ItemSpec, key);
+                SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], key);
             }
 
             return true;
         }
 
-        void ProcessAssembly(string assemblyPath, string assemblyOutputPath, StrongNameKeyPair key)
+        ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key)
         {
-            var assembly = AssemblyDefinition.ReadAssembly(assemblyPath);
+            var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec);
 
             if (assembly.Name.HasPublicKey)
             {
-                Log.LogMessage(MessageImportance.Low, $"Assembly file '{assemblyPath}' is already signed.  Skipping.");
-                return;
+                Log.LogMessage(MessageImportance.Low, $"Assembly file '{assemblyItem.ItemSpec}' is already signed.  Skipping.");
+                return assemblyItem;
             }
+
+            if (!Directory.Exists(SignedAssemblyFolder.ItemSpec))
+            {
+                Directory.CreateDirectory(SignedAssemblyFolder.ItemSpec);
+            }
+
+            string assemblyOutputPath = Path.Combine(SignedAssemblyFolder.ItemSpec, Path.GetFileName(assemblyItem.ItemSpec));
 
             assembly.Name.HashAlgorithm = AssemblyHashAlgorithm.SHA1;
             assembly.Name.PublicKey = key.PublicKey;
@@ -93,6 +104,11 @@ namespace StrongNamer
             {
                 StrongNameKeyPair = key
             });
+
+            var ret = new TaskItem(assemblyItem);
+            ret.ItemSpec = assemblyOutputPath;
+
+            return ret;
         }
 
         private static byte[] GetKeyTokenFromKey(byte[] fullKey)
