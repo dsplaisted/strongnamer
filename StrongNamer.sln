@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongNamer", "src\StrongNa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLibrary", "src\TestLibrary\TestLibrary.csproj", "{2823F067-39ED-4FE1-96C4-72C93A68DB8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsoleApp", "src\TestConsoleApp\TestConsoleApp.csproj", "{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2823F067-39ED-4FE1-96C4-72C93A68DB8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2823F067-39ED-4FE1-96C4-72C93A68DB8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2823F067-39ED-4FE1-96C4-72C93A68DB8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

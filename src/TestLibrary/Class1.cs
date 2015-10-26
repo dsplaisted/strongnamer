@@ -9,7 +9,7 @@ namespace TestLibrary
 {
     public class Class1
     {
-        public async Task Test()
+        public async Task TestAsync()
         {
             var github = new GitHubClient(new ProductHeaderValue("MyAmazingApp"));
             var user = await github.User.Get("half-ogre");
