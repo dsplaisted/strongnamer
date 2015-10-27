@@ -17,5 +17,12 @@
       <file src="StrongNamer.dll" target="build" />
       <file src="SharedKey.snk" target="build" />
       <file src="StrongNamer.targets" target="build" />
+      
+      <!-- Also need Mono.Cecil -->
+      <file src="Mono.Cecil.dll" target="build" />
+      <file src="Mono.Cecil.Mdb.dll" target="build" />
+      <file src="Mono.Cecil.Pdb.dll" target="build" />
+      <file src="Mono.Cecil.Rocks.dll" target="build" />
+      
     </files>
 </package>
