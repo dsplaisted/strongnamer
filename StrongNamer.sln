@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongNamer", "src\StrongNamer\StrongNamer.csproj", "{3BED6CCE-6803-448D-90D7-86EB9699CEA7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLibrary", "src\TestLibrary\TestLibrary.csproj", "{2823F067-39ED-4FE1-96C4-72C93A68DB8E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3BED6CCE-6803-448D-90D7-86EB9699CEA7} = {3BED6CCE-6803-448D-90D7-86EB9699CEA7}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsoleApp", "src\TestConsoleApp\TestConsoleApp.csproj", "{2F57F75B-02A7-44DE-B49F-5CA81546AF9B}"
 EndProject
