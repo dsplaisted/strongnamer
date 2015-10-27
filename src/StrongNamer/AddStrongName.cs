@@ -21,8 +21,13 @@ namespace StrongNamer
         [Required]
         public ITaskItem SignedAssemblyFolder { get; set; }
 
+        public ITaskItem[] CopyLocalFiles { get; set; }
+
         [Output]
         public ITaskItem[] SignedAssembliesToReference { get; set; }
+
+        [Output]
+        public ITaskItem[] NewCopyLocalFiles { get; set; }
 
         [Required]
         public ITaskItem KeyFile { get; set; }
@@ -60,9 +65,34 @@ namespace StrongNamer
 
             SignedAssembliesToReference = new ITaskItem[Assemblies.Length];
 
+            Dictionary<string, string> updatedReferencePaths = new Dictionary<string, string>();
+
             for (int i = 0; i < Assemblies.Length; i++)
             {
                 SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], key);
+                if (SignedAssembliesToReference[i].ItemSpec != Assemblies[i].ItemSpec)
+                {
+                    //  Path was updated to signed version
+                    updatedReferencePaths[Assemblies[i].ItemSpec] = SignedAssembliesToReference[i].ItemSpec;
+                }
+            }
+
+            if (CopyLocalFiles != null)
+            {
+                NewCopyLocalFiles = new ITaskItem[CopyLocalFiles.Length];
+                for (int i=0; i< CopyLocalFiles.Length; i++)
+                {
+                    string updatedPath;
+                    if (updatedReferencePaths.TryGetValue(CopyLocalFiles[i].ItemSpec, out updatedPath))
+                    {
+                        NewCopyLocalFiles[i] = new TaskItem(CopyLocalFiles[i]);
+                        NewCopyLocalFiles[i].ItemSpec = updatedPath;
+                    }
+                    else
+                    {
+                        NewCopyLocalFiles[i] = CopyLocalFiles[i];
+                    }
+                }
             }
 
             return true;
@@ -78,26 +108,44 @@ namespace StrongNamer
                 return assemblyItem;
             }
 
-            if (!Directory.Exists(SignedAssemblyFolder.ItemSpec))
+            string signedAssemblyFolder = Path.GetFullPath(SignedAssemblyFolder.ItemSpec);
+
+            if (!Directory.Exists(signedAssemblyFolder))
             {
-                Directory.CreateDirectory(SignedAssemblyFolder.ItemSpec);
+                Directory.CreateDirectory(signedAssemblyFolder);
             }
 
-            string assemblyOutputPath = Path.Combine(SignedAssemblyFolder.ItemSpec, Path.GetFileName(assemblyItem.ItemSpec));
+            string assemblyOutputPath = Path.Combine(signedAssemblyFolder, Path.GetFileName(assemblyItem.ItemSpec));
+
+
+            var token = GetKeyTokenFromKey(key.PublicKey);
+
+            string formattedKeyToken = BitConverter.ToString(token).Replace("-", "");
+            Log.LogMessage(MessageImportance.Low, $"Signing assembly {assembly.FullName} with key with token {formattedKeyToken}");
 
             assembly.Name.HashAlgorithm = AssemblyHashAlgorithm.SHA1;
             assembly.Name.PublicKey = key.PublicKey;
             assembly.Name.HasPublicKey = true;
             assembly.Name.Attributes &= AssemblyAttributes.PublicKey;
 
-            var token = new Lazy<byte[]>(() =>
-            {
-                return GetKeyTokenFromKey(key.PublicKey);
-            }, LazyThreadSafetyMode.None);
+            
 
-            foreach (var reference in assembly.MainModule.AssemblyReferences.Where(r => !r.HasPublicKey))
+            foreach (var reference in assembly.MainModule.AssemblyReferences.Where(r => r.PublicKeyToken == null || r.PublicKeyToken.Length == 0))
             {
-                reference.PublicKeyToken = token.Value;
+                reference.PublicKeyToken = token;
+                Log.LogMessage(MessageImportance.Low, $"Updating reference in assembly {assembly.FullName} to {reference.FullName} to use token {formattedKeyToken}");
+            }
+
+            string fullPublicKey = BitConverter.ToString(key.PublicKey).Replace("-", "");
+
+            var internalsVisibleToAttributes = assembly.CustomAttributes.Where(att => att.AttributeType.FullName == typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).FullName).ToList();
+            foreach (var internalsVisibleToAttribute in internalsVisibleToAttributes)
+            {
+                string internalsVisibleToAssemblyName = (string) internalsVisibleToAttribute.ConstructorArguments[0].Value;
+                string newInternalsVisibleToAssemblyName = internalsVisibleToAssemblyName + ", PublicKey=" + fullPublicKey;
+                Log.LogMessage(MessageImportance.Low, $"Updating InternalsVisibleToAttribute in {assembly.FullName} from {internalsVisibleToAssemblyName} to {newInternalsVisibleToAssemblyName}");
+
+                internalsVisibleToAttribute.ConstructorArguments[0] = new CustomAttributeArgument(internalsVisibleToAttribute.ConstructorArguments[0].Type, newInternalsVisibleToAssemblyName);
             }
 
             assembly.Write(assemblyOutputPath, new WriterParameters()

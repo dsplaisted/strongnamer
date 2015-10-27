@@ -4,27 +4,30 @@
 
   <Target Name="StrongNamerTarget"
           AfterTargets="AfterBuild">
-    
-    
-      
+
     <StrongNamer.AddStrongName
           Assemblies="@(ReferencePath)"
+          CopyLocalFiles="@(ReferenceCopyLocalPaths)"
           SignedAssemblyFolder="$(IntermediateOutputPath)SignedAssemblies"
           KeyFile="$(MSBuildThisFileDirectory)SharedKey.snk">
-      
+
       <Output TaskParameter="SignedAssembliesToReference" ItemName="AssembliesToReference" />
-    
+      <Output TaskParameter="NewCopyLocalFiles" ItemName="NewCopyLocalFiles" />
+
     </StrongNamer.AddStrongName>
-  
+
     <ItemGroup>
-      <ReferencePath Remove="@(ReferencePath)"/>
-      <ReferencePath Include="@(AssembliesToReference)"/>
+      <ReferencePath Remove="@(ReferencePath)" />
+      <ReferencePath Include="@(AssembliesToReference)" />
+
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+      <ReferenceCopyLocalPaths Include="@(NewCopyLocalFiles)" />
     </ItemGroup>
-  
+
   </Target>
-  
+
   <PropertyGroup>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);StrongNamerTarget</CoreCompileDependsOn>
   </PropertyGroup>
-  
+
 </Project>
