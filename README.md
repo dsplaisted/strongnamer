@@ -78,3 +78,12 @@ File name: 'Octokit, Version=0.16.0.0, Culture=neutral, PublicKeyToken=null'
 
 ![75 folks love the half ogre!](images/StrongNameSuccessSparkles.png)
 - :sparkles: :fireworks: :smile: :fireworks: :sparkles:
+
+# How does it work?
+
+The NuGet package includes an MSBuild targets file and task which hook into the
+build process and add a strong name to any references which aren't strong named
+just before they are passed to the compiler.
+
+The task uses Mono.Cecil to do this.  Credit goes to [Nivot.StrongNaming](https://github.com/oising/strongnaming) for showing me how
+to do this.
