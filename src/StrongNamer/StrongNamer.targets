@@ -3,7 +3,7 @@
   <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(MSBuildThisFileDirectory)StrongNamer.dll" />
 
   <Target Name="StrongNamerTarget"
-          AfterTargets="AfterBuild">
+          AfterTargets="AfterResolveReferences">
 
     <StrongNamer.AddStrongName
           Assemblies="@(ReferencePath)"
@@ -27,7 +27,7 @@
   </Target>
 
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);StrongNamerTarget</CoreCompileDependsOn>
+    <ResolveReferencesDependsOn>$(ResolveReferencesDependsOn);StrongNamerTarget</ResolveReferencesDependsOn>
   </PropertyGroup>
 
 </Project>
