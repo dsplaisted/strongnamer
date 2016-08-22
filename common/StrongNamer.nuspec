@@ -2,7 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.7.2">
         <id>StrongNamer</id>
+
+        <!-- No need to update version number, build process overrides it -->
         <version>0.0.1</version>
+        
         <title>Strong Namer - Automatically Add Strong Names to References</title>
         <authors>Daniel Plaisted</authors>
         <owners>Daniel Plaisted</owners>
