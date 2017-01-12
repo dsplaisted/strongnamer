@@ -87,3 +87,7 @@ just before they are passed to the compiler.
 
 The task uses Mono.Cecil to do this.  Credit goes to [Nivot.StrongNaming](https://github.com/oising/strongnaming) for showing me how
 to do this.
+
+# Options
+
+You can conditionally disable automated signing of unsigned packages by setting the "DisableStrongNamer" property to "true".  This is particularly useful if you have a custom build configuration for your application (e.g., you only wish for unsigned packages to be autosigned in specific environments).
