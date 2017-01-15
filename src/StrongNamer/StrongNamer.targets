@@ -3,7 +3,8 @@
   <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(MSBuildThisFileDirectory)StrongNamer.dll" />
 
   <Target Name="StrongNamerTarget"
-          AfterTargets="AfterResolveReferences">
+          AfterTargets="AfterResolveReferences"
+          Condition="'$(DisableStrongNamer)' != 'true'">
 
     <StrongNamer.AddStrongName
           Assemblies="@(ReferencePath)"
