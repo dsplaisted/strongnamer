@@ -38,9 +38,8 @@ namespace StrongNamer
             {
                 if (_assemblyResolver == null)
                 {
-                    _assemblyResolver = new StrongNamerAssemblyResolver(Assemblies
-                        .Select(ti => AssemblyDefinition.ReadAssembly(ti.ItemSpec))
-                        .ToList());
+                    _assemblyResolver = new StrongNamerAssemblyResolver(
+                        Assemblies.Select(a => a.ItemSpec));
                 }
                 return _assemblyResolver;
             }

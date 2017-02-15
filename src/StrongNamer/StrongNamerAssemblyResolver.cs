@@ -9,11 +9,13 @@ namespace StrongNamer
 {
     class StrongNamerAssemblyResolver : BaseAssemblyResolver
     {
-        List<AssemblyDefinition> _assemblies = new List<AssemblyDefinition>();
+        readonly List<AssemblyDefinition> _assemblies = null;
 
-        public StrongNamerAssemblyResolver(List<AssemblyDefinition> assemblies) : base()
+        public StrongNamerAssemblyResolver(IEnumerable<string> assemblyPaths) : base()
         {
-            _assemblies = assemblies;
+            _assemblies = assemblyPaths
+                .Select(path => AssemblyDefinition.ReadAssembly(path))
+                .ToList();
         }
 
         // Check the StrongNamer knowledge of assemblies before passing to the base resolver.
