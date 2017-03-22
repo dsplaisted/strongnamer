@@ -109,6 +109,8 @@ namespace StrongNamer
                 }
             }
 
+            AssemblyResolver.Dispose(false);
+
             return true;
         }
 

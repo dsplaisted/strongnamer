@@ -34,5 +34,12 @@ namespace StrongNamer
         {
             return Resolve(name, new ReaderParameters());
         }
+
+        public new void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            for (int i = 0; i < _assemblies.Count; i++) {
+                _assemblies.ElementAtOrDefault(i)?.Dispose();
+            }
+        }
     }
 }
