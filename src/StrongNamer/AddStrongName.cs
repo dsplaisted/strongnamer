@@ -32,6 +32,20 @@ namespace StrongNamer
         [Required]
         public ITaskItem KeyFile { get; set; }
 
+        StrongNamerAssemblyResolver AssemblyResolver
+        {
+            get
+            {
+                if (_assemblyResolver == null)
+                {
+                    _assemblyResolver = new StrongNamerAssemblyResolver(
+                        Assemblies.Select(a => a.ItemSpec));
+                }
+                return _assemblyResolver;
+            }
+        }
+        StrongNamerAssemblyResolver _assemblyResolver;
+
         public override bool Execute()
         {
             if (Assemblies == null || Assemblies.Length == 0)
@@ -95,12 +109,17 @@ namespace StrongNamer
                 }
             }
 
+            AssemblyResolver.Dispose(false);
+
             return true;
         }
 
         ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key)
         {
-            using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec))
+            using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec, new ReaderParameters()
+            {
+                AssemblyResolver = this.AssemblyResolver
+            }))
             {
                 if (assembly.Name.HasPublicKey)
                 {
