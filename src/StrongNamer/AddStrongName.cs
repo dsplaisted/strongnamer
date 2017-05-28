@@ -32,20 +32,6 @@ namespace StrongNamer
         [Required]
         public ITaskItem KeyFile { get; set; }
 
-        StrongNamerAssemblyResolver AssemblyResolver
-        {
-            get
-            {
-                if (_assemblyResolver == null)
-                {
-                    _assemblyResolver = new StrongNamerAssemblyResolver(
-                        Assemblies.Select(a => a.ItemSpec));
-                }
-                return _assemblyResolver;
-            }
-        }
-        StrongNamerAssemblyResolver _assemblyResolver;
-
         public override bool Execute()
         {
             if (Assemblies == null || Assemblies.Length == 0)
@@ -81,13 +67,16 @@ namespace StrongNamer
 
             Dictionary<string, string> updatedReferencePaths = new Dictionary<string, string>();
 
-            for (int i = 0; i < Assemblies.Length; i++)
+            using (var resolver = new StrongNamerAssemblyResolver(Assemblies.Select(a => a.ItemSpec)))
             {
-                SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], key);
-                if (SignedAssembliesToReference[i].ItemSpec != Assemblies[i].ItemSpec)
+                for (int i = 0; i < Assemblies.Length; i++)
                 {
-                    //  Path was updated to signed version
-                    updatedReferencePaths[Assemblies[i].ItemSpec] = SignedAssembliesToReference[i].ItemSpec;
+                    SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], key, resolver);
+                    if (SignedAssembliesToReference[i].ItemSpec != Assemblies[i].ItemSpec)
+                    {
+                        //  Path was updated to signed version
+                        updatedReferencePaths[Assemblies[i].ItemSpec] = SignedAssembliesToReference[i].ItemSpec;
+                    }
                 }
             }
 
@@ -109,16 +98,14 @@ namespace StrongNamer
                 }
             }
 
-            AssemblyResolver.Dispose(false);
-
             return true;
         }
 
-        ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key)
+        ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key, StrongNamerAssemblyResolver resolver)
         {
             using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec, new ReaderParameters()
             {
-                AssemblyResolver = this.AssemblyResolver
+                AssemblyResolver = resolver
             }))
             {
                 if (assembly.Name.HasPublicKey)

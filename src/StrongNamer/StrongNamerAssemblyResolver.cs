@@ -18,14 +18,14 @@ namespace StrongNamer
                 .ToList();
         }
 
-        // Check the StrongNamer knowledge of assemblies before passing to the base resolver.
+        // If the base resolver can't resolve an assembly, look for assemblies which are referenced by the project
         // Base resolver checks local folders and the GAC, so will not find anything in the Packages folder
         public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {
-            var matchedAssembly = _assemblies.SingleOrDefault(ad => ad.Name.Name.Equals(name.Name));
+            var matchedAssembly = base.Resolve(name, parameters);
             if (matchedAssembly == null)
             {
-                return base.Resolve(name, parameters);
+                matchedAssembly = _assemblies.SingleOrDefault(ad => ad.Name.Name.Equals(name.Name));
             }
             return matchedAssembly;
         }
