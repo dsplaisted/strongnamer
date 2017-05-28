@@ -13,7 +13,7 @@ couldn't easily consume open source packages.
 Strong Namer is a NuGet package which aims to change this.  Simply install the
 [StrongNamer](https://www.nuget.org/packages/strongnamer) NuGet package, and
 it will transparently and automatically sign the assemblies you reference as
-part of the build process.
+part of the build process using the key you strong-name your own assembly with.
 
 # Demo
 
