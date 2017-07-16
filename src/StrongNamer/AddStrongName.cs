@@ -103,6 +103,27 @@ namespace StrongNamer
 
         ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key, StrongNamerAssemblyResolver resolver)
         {
+            string signedAssemblyFolder = Path.GetFullPath(SignedAssemblyFolder.ItemSpec);
+            if (!Directory.Exists(signedAssemblyFolder))
+            {
+                Directory.CreateDirectory(signedAssemblyFolder);
+            }
+
+            string assemblyOutputPath = Path.Combine(signedAssemblyFolder, Path.GetFileName(assemblyItem.ItemSpec));
+
+            // Check if the signed assembly for this assembly already exists and the Mvid matches.
+            // Avoid doing the work again if we can just re-use the existing assembly.
+            // This also helps with build incrementality since we won't touch the timestamp of the signed
+            // assembly if it didn't change (thus invalidating the entire build that depends on it).
+            Guid existingAssemblyMvid = Guid.Empty;
+            if (File.Exists(assemblyOutputPath))
+            {
+                using (var existingModule = ModuleDefinition.ReadModule(assemblyOutputPath))
+                {
+                    existingAssemblyMvid = existingModule.Mvid;
+                }
+            }
+
             using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec, new ReaderParameters()
             {
                 AssemblyResolver = resolver
@@ -114,15 +135,14 @@ namespace StrongNamer
                     return assemblyItem;
                 }
 
-                string signedAssemblyFolder = Path.GetFullPath(SignedAssemblyFolder.ItemSpec);
-
-                if (!Directory.Exists(signedAssemblyFolder))
+                if (existingAssemblyMvid != Guid.Empty && assembly.MainModule.Mvid == existingAssemblyMvid)
                 {
-                    Directory.CreateDirectory(signedAssemblyFolder);
+                    Log.LogMessage(MessageImportance.Low, $"Signed assembly already exists for '{assemblyItem.ItemSpec}' and the Mvid matches. Using existing signed assembly.");
+
+                    assemblyItem = new TaskItem(assemblyItem);
+                    assemblyItem.ItemSpec = assemblyOutputPath;
+                    return assemblyItem;
                 }
-
-                string assemblyOutputPath = Path.Combine(signedAssemblyFolder, Path.GetFileName(assemblyItem.ItemSpec));
-
 
                 var token = GetKeyTokenFromKey(key.PublicKey);
 
@@ -133,8 +153,6 @@ namespace StrongNamer
                 assembly.Name.PublicKey = key.PublicKey;
                 assembly.Name.HasPublicKey = true;
                 assembly.Name.Attributes &= AssemblyAttributes.PublicKey;
-
-
 
                 foreach (var reference in assembly.MainModule.AssemblyReferences.Where(r => r.PublicKeyToken == null || r.PublicKeyToken.Length == 0))
                 {
@@ -154,6 +172,7 @@ namespace StrongNamer
                     internalsVisibleToAttribute.ConstructorArguments[0] = new CustomAttributeArgument(internalsVisibleToAttribute.ConstructorArguments[0].Type, newInternalsVisibleToAssemblyName);
                 }
 
+                Log.LogMessage(MessageImportance.Low, $"Writing signed assembly to {assemblyOutputPath}");
                 assembly.Write(assemblyOutputPath, new WriterParameters()
                 {
                     StrongNameKeyPair = key
