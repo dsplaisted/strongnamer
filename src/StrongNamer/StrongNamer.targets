@@ -6,11 +6,15 @@
           AfterTargets="AfterResolveReferences"
           Condition="'$(DisableStrongNamer)' != 'true'">
 
+    <PropertyGroup>
+	<StrongNamerKeyFile Condition="'$(StrongNamerKeyFile)'==''">$(MSBuildThisFileDirectory)SharedKey.snk</StrongNamerKeyFile>
+    </PropertyGroup>
+
     <StrongNamer.AddStrongName
           Assemblies="@(ReferencePath)"
           CopyLocalFiles="@(ReferenceCopyLocalPaths)"
           SignedAssemblyFolder="$(IntermediateOutputPath)SignedAssemblies"
-          KeyFile="$(MSBuildThisFileDirectory)SharedKey.snk">
+          KeyFile="$(StrongNamerKeyFile)">
 
       <Output TaskParameter="SignedAssembliesToReference" ItemName="AssembliesToReference" />
       <Output TaskParameter="NewCopyLocalFiles" ItemName="NewCopyLocalFiles" />
