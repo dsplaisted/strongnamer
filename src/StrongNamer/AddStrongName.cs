@@ -32,6 +32,8 @@ namespace StrongNamer
         [Required]
         public ITaskItem KeyFile { get; set; }
 
+        public ITaskItem KeyName { get; set; }
+
         public override bool Execute()
         {
             if (Assemblies == null || Assemblies.Length == 0)
@@ -45,22 +47,29 @@ namespace StrongNamer
                 return false;
             }
 
-            if (KeyFile == null || string.IsNullOrEmpty(KeyFile.ItemSpec))
-            {
-                Log.LogError("KeyFile not specified");
-                return false;
-            }
-
-            if (!File.Exists(KeyFile.ItemSpec))
-            {
-                Log.LogError($"KeyFile not found: ${KeyFile.ItemSpec}");
-                return false;
-            }
-
             StrongNameKeyPair key;
-            using (var keyStream = File.OpenRead(KeyFile.ItemSpec))
+            if (KeyName != null && !string.IsNullOrEmpty(KeyName.ItemSpec))
             {
-                key = new StrongNameKeyPair(keyStream);
+                key = new StrongNameKeyPair(KeyName.ItemSpec);
+            }
+            else
+            {
+                if (KeyFile == null || string.IsNullOrEmpty(KeyFile.ItemSpec))
+                {
+                    Log.LogError("KeyFile not specified");
+                    return false;
+                }
+
+                if (!File.Exists(KeyFile.ItemSpec))
+                {
+                    Log.LogError($"KeyFile not found: ${KeyFile.ItemSpec}");
+                    return false;
+                }
+
+                using (var keyStream = File.OpenRead(KeyFile.ItemSpec))
+                {
+                    key = new StrongNameKeyPair(keyStream);
+                }
             }
 
             SignedAssembliesToReference = new ITaskItem[Assemblies.Length];
