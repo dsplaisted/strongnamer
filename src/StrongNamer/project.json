@@ -1,13 +1,13 @@
 ﻿{
   "dependencies": {
-    "Mono.Cecil": "0.10.0-beta2"
+    "Mono.Cecil": "0.10.0"
   },
   "frameworks": {
     "net452": {
-      "dependencies": { }
+      "dependencies": {}
     }
   },
   "runtimes": {
-    "win-any": { }
+    "win-any": {}
   }
 }
