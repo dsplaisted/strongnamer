@@ -1,21 +1,18 @@
-﻿using System;
+﻿using Mono.Cecil;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Mono.Cecil;
 
 namespace StrongNamer
 {
     class StrongNamerAssemblyResolver : BaseAssemblyResolver
     {
-        readonly List<AssemblyDefinition> _assemblies = null;
-
+        readonly string[] _assemblyPaths;
+        List<AssemblyDefinition> _assemblies = null;
+        
         public StrongNamerAssemblyResolver(IEnumerable<string> assemblyPaths) : base()
         {
-            _assemblies = assemblyPaths
-                .Select(path => AssemblyDefinition.ReadAssembly(path))
-                .ToList();
+            _assemblyPaths = assemblyPaths.ToArray();
         }
 
         // If the base resolver can't resolve an assembly, look for assemblies which are referenced by the project
@@ -25,6 +22,14 @@ namespace StrongNamer
             var matchedAssembly = base.Resolve(name, parameters);
             if (matchedAssembly == null)
             {
+                if (_assemblies == null)
+                {
+                    _assemblies = _assemblyPaths
+                        .Where(File.Exists)
+                        .Select(AssemblyDefinition.ReadAssembly)
+                        .ToList();
+                }
+
                 matchedAssembly = _assemblies.SingleOrDefault(ad => ad.Name.Name.Equals(name.Name));
             }
             return matchedAssembly;
@@ -37,8 +42,12 @@ namespace StrongNamer
 
         public new void Dispose(bool disposing) {
             base.Dispose(disposing);
-            for (int i = 0; i < _assemblies.Count; i++) {
-                _assemblies.ElementAtOrDefault(i)?.Dispose();
+            if (_assemblies != null)
+            {
+                for (int i = 0; i < _assemblies.Count; i++)
+                {
+                    _assemblies.ElementAtOrDefault(i)?.Dispose();
+                }
             }
         }
     }

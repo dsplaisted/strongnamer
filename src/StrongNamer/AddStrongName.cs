@@ -124,6 +124,12 @@ namespace StrongNamer
                 }
             }
 
+            if (!File.Exists(assemblyItem.ItemSpec))
+            {
+                Log.LogMessage(MessageImportance.Low, $"Assembly file '{assemblyItem.ItemSpec}' does not exist (yet).  Skipping.");
+                return assemblyItem;
+            }
+
             using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec, new ReaderParameters()
             {
                 AssemblyResolver = resolver
