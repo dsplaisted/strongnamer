@@ -127,7 +127,7 @@ namespace StrongNamer
                 }
                 catch (Exception ex)
                 {
-                    Log.LogMessage(MessageImportance.High, $"Assembly file '{assemblyItem.ItemSpec}' failed to load.  Skipping.  {ex.Message}");
+                    Log.LogMessage(MessageImportance.High, $"Assembly file '{assemblyItem.ItemSpec}' failed to load.  Skipping.  {ex}");
                     throw;
                 }
             }
@@ -191,12 +191,12 @@ namespace StrongNamer
                 {
                     assembly.Write(assemblyOutputPath, new WriterParameters()
                     {
-
                         StrongNameKeyPair = key
                     });
                 }
                 catch (Exception ex)
                 {
+                    Log.LogMessage(MessageImportance.High, $"Failed to write signed assembly to '{assemblyOutputPath}'. {ex}");
                     File.Delete(assemblyOutputPath);
                 }
 
