@@ -19,7 +19,15 @@ namespace StrongNamer
         // Base resolver checks local folders and the GAC, so will not find anything in the Packages folder
         public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {
-            var matchedAssembly = base.Resolve(name, parameters);
+            AssemblyDefinition matchedAssembly = null;
+            try
+            {
+                matchedAssembly = base.Resolve(name, parameters);
+            }
+            catch (AssemblyResolutionException)
+            {
+            }
+
             if (matchedAssembly == null)
             {
                 if (_assemblies == null)
