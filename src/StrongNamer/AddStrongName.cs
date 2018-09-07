@@ -118,9 +118,17 @@ namespace StrongNamer
             Guid existingAssemblyMvid = Guid.Empty;
             if (File.Exists(assemblyOutputPath))
             {
-                using (var existingModule = ModuleDefinition.ReadModule(assemblyOutputPath))
+                try
                 {
-                    existingAssemblyMvid = existingModule.Mvid;
+                    using (var existingModule = ModuleDefinition.ReadModule(assemblyOutputPath))
+                    {
+                        existingAssemblyMvid = existingModule.Mvid;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.LogMessage(MessageImportance.High, $"Assembly file '{assemblyItem.ItemSpec}' failed to load.  Skipping.  {ex.Message}");
+                    throw;
                 }
             }
 
@@ -179,10 +187,18 @@ namespace StrongNamer
                 }
 
                 Log.LogMessage(MessageImportance.Low, $"Writing signed assembly to {assemblyOutputPath}");
-                assembly.Write(assemblyOutputPath, new WriterParameters()
+                try
                 {
-                    StrongNameKeyPair = key
-                });
+                    assembly.Write(assemblyOutputPath, new WriterParameters()
+                    {
+
+                        StrongNameKeyPair = key
+                    });
+                }
+                catch (Exception ex)
+                {
+                    File.Delete(assemblyOutputPath);
+                }
 
                 var ret = new TaskItem(assemblyItem);
                 ret.ItemSpec = assemblyOutputPath;
