@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(MSBuildThisFileDirectory)StrongNamer.dll" />
+<Project TreatAsLocalProperty="TaskFolder;TaskAssembly">
+
+  <PropertyGroup>
+    <TaskFolder Condition=" '$(MSBuildRuntimeType)' == 'Core' ">netstandard2.0</TaskFolder>
+    <TaskFolder Condition=" '$(MSBuildRuntimeType)' != 'Core' ">net461</TaskFolder>
+    <TaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(TaskFolder)\StrongNamer.dll</TaskAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(TaskAssembly)" />
 
   <Target Name="StrongNamerTarget"
           AfterTargets="AfterResolveReferences"
           Condition="'$(DisableStrongNamer)' != 'true'">
 
     <PropertyGroup>
-	<StrongNamerKeyFile Condition="'$(StrongNamerKeyFile)'==''">$(MSBuildThisFileDirectory)SharedKey.snk</StrongNamerKeyFile>
+      <StrongNamerKeyFile Condition="'$(StrongNamerKeyFile)'==''">$(MSBuildThisFileDirectory)SharedKey.snk</StrongNamerKeyFile>
     </PropertyGroup>
 
     <StrongNamer.AddStrongName
@@ -18,7 +25,6 @@
 
       <Output TaskParameter="SignedAssembliesToReference" ItemName="AssembliesToReference" />
       <Output TaskParameter="NewCopyLocalFiles" ItemName="NewCopyLocalFiles" />
-
     </StrongNamer.AddStrongName>
 
     <ItemGroup>
@@ -28,11 +34,9 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
       <ReferenceCopyLocalPaths Include="@(NewCopyLocalFiles)" />
     </ItemGroup>
-
   </Target>
 
   <PropertyGroup>
     <ResolveReferencesDependsOn>$(ResolveReferencesDependsOn);StrongNamerTarget</ResolveReferencesDependsOn>
   </PropertyGroup>
-
 </Project>
