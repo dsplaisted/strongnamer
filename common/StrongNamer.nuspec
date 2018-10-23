@@ -15,6 +15,7 @@
         <description>Strong Namer will automatically add strong names to referenced assemblies which do not already have a strong name.  This will allow you to reference and use NuGet packages with assemblies which are not strong named from your projects that do use a strong name.</description>
         <summary>Strong Namer will automatically add strong names to referenced assemblies which do not already have a strong name.</summary>
         <tags>strongname strong name naming</tags>
+        <developmentDependency>true</developmentDependency>
     </metadata>
     <files>
       <file src="StrongNamer.dll" target="build" />
