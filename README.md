@@ -6,7 +6,8 @@ this, many OSS libraries do not strong name their assemblies.
 
 [1]: https://github.com/dotnet/corefx/blob/c02d33b18398199f6acc17d375dab154e9a1df66/Documentation/project-docs/strong-name-signing.md#faq
 
-Strong named assemblies cannot reference assemblies that aren't strong named.
+Strong named assemblies that reference assemblies that aren't strong named are
+rejected by the .NET Framework (desktop app only restriction).
 So if for whatever reason you actually do need to strong name your project, you
 couldn't easily consume open source packages.
 
