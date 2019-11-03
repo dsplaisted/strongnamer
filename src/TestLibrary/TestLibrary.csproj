@@ -9,6 +9,5 @@
     <PackageReference Include="Octokit" Version="0.16.0" />
   </ItemGroup>
   
-  <Import Project="..\StrongNamer\bin\$(Configuration)\net461\StrongNamer.targets" Condition="Exists('..\StrongNamer\bin\$(Configuration)\net461\StrongNamer.targets')" />
-
+  <Import Project="..\StrongNamer\bin\$(Configuration)\StrongNamer.targets" Condition="Exists('..\StrongNamer\bin\$(Configuration)\StrongNamer.targets')" />
 </Project>

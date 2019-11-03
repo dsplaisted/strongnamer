@@ -1,13 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(MSBuildThisFileDirectory)StrongNamer.dll" />
+<Project>
+
+  <PropertyGroup>
+    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == '' Or $(IntermediateOutputPath) == '*Undefined*'">$(MSBuildProjectDirectory)\obj\$(Configuration)\</IntermediateOutputPath>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netcoreapp2.1\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)net461\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+
+    <StrongNamerMinCoreVersionRequired>2.1</StrongNamerMinCoreVersionRequired>
+    <!-- Our default CLI version for error checking purposes -->
+    <StrongNamerNetCoreAppVersion>$(BundledNETCoreAppTargetFrameworkVersion)</StrongNamerNetCoreAppVersion>
+    <StrongNamerNetCoreAppVersion Condition="'$(StrongNamerNetCoreAppVersion)' == ''">1.0</StrongNamerNetCoreAppVersion> 
+
+</PropertyGroup>
+
+  <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(StrongNamerTaskAssemblyFile)" />
 
   <Target Name="StrongNamerTarget"
           AfterTargets="AfterResolveReferences"
           Condition="'$(DisableStrongNamer)' != 'true'">
 
+    <Error Condition="'$(MSBuildRuntimeType)' == 'Core' and '$(StrongNamerMinCoreVersionRequired)' > '$(StrongNamerNetCoreAppVersion)' "
+           Text="StrongNamer requires at least the .NET Core SDK v2.1 to run with 'dotnet build'"
+           ContinueOnError="false"
+           />
+
     <PropertyGroup>
-	<StrongNamerKeyFile Condition="'$(StrongNamerKeyFile)'==''">$(MSBuildThisFileDirectory)SharedKey.snk</StrongNamerKeyFile>
+	    <StrongNamerKeyFile Condition="'$(StrongNamerKeyFile)'==''">$(MSBuildThisFileDirectory)SharedKey.snk</StrongNamerKeyFile>
     </PropertyGroup>
 
     <StrongNamer.AddStrongName

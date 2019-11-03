@@ -163,7 +163,7 @@ namespace StrongNamer
                 string formattedKeyToken = BitConverter.ToString(token).Replace("-", "");
                 Log.LogMessage(MessageImportance.Low, $"Signing assembly {assembly.FullName} with key with token {formattedKeyToken}");
 
-                assembly.Name.HashAlgorithm = AssemblyHashAlgorithm.SHA1;
+                assembly.Name.HashAlgorithm = Mono.Cecil.AssemblyHashAlgorithm.SHA1;
                 assembly.Name.PublicKey = key.PublicKey;
                 assembly.Name.HasPublicKey = true;
                 assembly.Name.Attributes &= AssemblyAttributes.PublicKey;
