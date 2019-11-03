@@ -17,6 +17,7 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
 
     <CecilVersion>0.11.0</CecilVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
