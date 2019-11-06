@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Mono.Cecil;
+using Mono.Security.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -57,11 +58,7 @@ namespace StrongNamer
                 return false;
             }
 
-            StrongNameKeyPair key;
-            using (var keyStream = File.OpenRead(KeyFile.ItemSpec))
-            {
-                key = new StrongNameKeyPair(keyStream);
-            }
+            var keyBytes = File.ReadAllBytes(KeyFile.ItemSpec);
 
             SignedAssembliesToReference = new ITaskItem[Assemblies.Length];
 
@@ -71,7 +68,7 @@ namespace StrongNamer
             {
                 for (int i = 0; i < Assemblies.Length; i++)
                 {
-                    SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], key, resolver);
+                    SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], keyBytes, resolver);
                     if (SignedAssembliesToReference[i].ItemSpec != Assemblies[i].ItemSpec)
                     {
                         //  Path was updated to signed version
@@ -101,7 +98,7 @@ namespace StrongNamer
             return true;
         }
 
-        ITaskItem ProcessAssembly(ITaskItem assemblyItem, StrongNameKeyPair key, StrongNamerAssemblyResolver resolver)
+        ITaskItem ProcessAssembly(ITaskItem assemblyItem, byte[] keyBytes, StrongNamerAssemblyResolver resolver)
         {
             string signedAssemblyFolder = Path.GetFullPath(SignedAssemblyFolder.ItemSpec);
             if (!Directory.Exists(signedAssemblyFolder))
@@ -158,13 +155,16 @@ namespace StrongNamer
                     return assemblyItem;
                 }
 
-                var token = GetKeyTokenFromKey(key.PublicKey);
+
+                var publicKey = GetPublicKey(keyBytes);
+
+                var token = GetKeyTokenFromKey(publicKey);
 
                 string formattedKeyToken = BitConverter.ToString(token).Replace("-", "");
                 Log.LogMessage(MessageImportance.Low, $"Signing assembly {assembly.FullName} with key with token {formattedKeyToken}");
 
-                assembly.Name.HashAlgorithm = AssemblyHashAlgorithm.SHA1;
-                assembly.Name.PublicKey = key.PublicKey;
+                assembly.Name.HashAlgorithm = Mono.Cecil.AssemblyHashAlgorithm.SHA1;
+                assembly.Name.PublicKey = publicKey;
                 assembly.Name.HasPublicKey = true;
                 assembly.Name.Attributes &= AssemblyAttributes.PublicKey;
 
@@ -174,7 +174,7 @@ namespace StrongNamer
                     Log.LogMessage(MessageImportance.Low, $"Updating reference in assembly {assembly.FullName} to {reference.FullName} to use token {formattedKeyToken}");
                 }
 
-                string fullPublicKey = BitConverter.ToString(key.PublicKey).Replace("-", "");
+                string fullPublicKey = BitConverter.ToString(publicKey).Replace("-", "");
 
                 var internalsVisibleToAttributes = assembly.CustomAttributes.Where(att => att.AttributeType.FullName == typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).FullName).ToList();
                 foreach (var internalsVisibleToAttribute in internalsVisibleToAttributes)
@@ -190,8 +190,8 @@ namespace StrongNamer
                 try
                 {
                     assembly.Write(assemblyOutputPath, new WriterParameters()
-                    {
-                        StrongNameKeyPair = key
+                    {                        
+                        StrongNameKeyBlob = keyBytes
                     });
                 }
                 catch (Exception ex)
@@ -217,5 +217,40 @@ namespace StrongNamer
 
             return hash.Reverse().Take(8).ToArray();
         }
+
+        // From Cecil
+        // https://github.com/jbevain/cecil/pull/548/files
+        static RSA CreateRSA(byte[] blob)
+        {
+            if (blob == null)
+                throw new ArgumentNullException("blob");
+
+
+            return CryptoConvert.FromCapiKeyBlob(blob);
+        }
+
+        // https://github.com/atykhyy/cecil/blob/291a779d473e9c88e597e2c9f86e47e23b49be1e/Mono.Security.Cryptography/CryptoService.cs
+        public static byte[] GetPublicKey(byte[] keyBlob)
+        {
+            using var rsa = CreateRSA(keyBlob);
+
+            var cspBlob = CryptoConvert.ToCapiPublicKeyBlob(rsa);
+            var publicKey = new byte[12 + cspBlob.Length];
+            Buffer.BlockCopy(cspBlob, 0, publicKey, 12, cspBlob.Length);
+            // The first 12 bytes are documented at:
+            // http://msdn.microsoft.com/library/en-us/cprefadd/html/grfungethashfromfile.asp
+            // ALG_ID - Signature
+            publicKey[1] = 36;
+            // ALG_ID - Hash
+            publicKey[4] = 4;
+            publicKey[5] = 128;
+            // Length of Public Key (in bytes)
+            publicKey[8] = (byte)(cspBlob.Length >> 0);
+            publicKey[9] = (byte)(cspBlob.Length >> 8);
+            publicKey[10] = (byte)(cspBlob.Length >> 16);
+            publicKey[11] = (byte)(cspBlob.Length >> 24);
+            return publicKey;
+        }
+
     }
 }

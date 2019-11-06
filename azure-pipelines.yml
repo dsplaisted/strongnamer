@@ -1,0 +1,60 @@
+trigger:
+  branches:
+    include:
+    - master
+    - rel/*
+  paths:
+    exclude:
+    - '**/*.md'
+
+pr:
+  branches:
+    include:
+    - master
+    - rel/*
+  paths:
+    exclude:
+    - '**/*.md'
+
+variables:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
+
+    variables:
+      BuildConfiguration: Release
+
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: custom
+        custom: tool
+        arguments: install --tool-path . nbgv
+      displayName: Install NBGV tool
+
+    - script: nbgv cloud
+      displayName: Set Version
+
+    - task: UseDotNet@2
+      displayName: Use .NET Core 3.0.x SDK
+      inputs:
+        version: 3.0.x
+        performMultiLevelLookup: true
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: pack
+        packagesToPack: src/StrongNamer/StrongNamer.csproj
+        configuration: $(BuildConfiguration)
+        packDirectory: $(Build.ArtifactStagingDirectory)\artifacts
+        nobuild: true
+      displayName: Pack StrongNamer
+
+    - publish: $(Build.ArtifactStagingDirectory)\artifacts
+      displayName: Publish build packages
+      artifact: BuildPackages

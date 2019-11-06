@@ -1,72 +1,49 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3BED6CCE-6803-448D-90D7-86EB9699CEA7}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StrongNamer</RootNamespace>
-    <AssemblyName>StrongNamer</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetRuntimeIdentifier>win-any</NuGetRuntimeIdentifier>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <AssemblyOriginatorKeyFile>SharedKey.snk</AssemblyOriginatorKeyFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>true</SignAssembly>
+    <Authors>Daniel Plaisted</Authors>
+    <Title>Strong Namer - Automatically Add Strong Names to References</Title>
+    <PackageProjectUrl>https://github.com/dsplaisted/strongnamer</PackageProjectUrl>
+    <RepositoryUrl></RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <PackageTags>strongname strong name naming</PackageTags>
+    <Description>Strong Namer will automatically add strong names to referenced assemblies which do not already have a strong name.</Description>
+    <PackageSummary>Strong Namer will automatically add strong names to referenced assemblies which do not already have a strong name.  This will allow you to reference and use NuGet packages with assemblies which are not strong named from your projects that do use a strong name.</PackageSummary>
+
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <CecilVersion>0.11.0</CecilVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Tasks.v4.0" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net461' " Include="Microsoft.Build.Tasks.Core" Version="14.3" PrivateAssets="all" />
+    <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp2.1' " Include="Microsoft.Build.Tasks.Core" Version="15.1.548" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="StrongNamer.targets" Pack="true" PackagePath="build" />
+    <None Include="SharedKey.snk" Pack="true" PackagePath="build" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\net40\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\netcoreapp2.1" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\common\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="AddStrongName.cs" />
-    <Compile Include="StrongNamerAssemblyResolver.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <PackageReference Include="Mono.Cecil" Version="$(CecilVersion)" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.0.26" PrivateAssets="all" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-    <None Include="SharedKey.snk">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="StrongNamer.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+
+  <Target Name="CopyFilesToOutputForTesting" BeforeTargets="CoreCompile">
+
+    <ItemGroup>
+      <FileToCopy Include="StrongNamer.targets" />
+      <FileToCopy Include="SharedKey.snk" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(FileToCopy)" DestinationFolder="$(MSBuildThisFileDirectory)bin\$(Configuration)"/>
+    
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
