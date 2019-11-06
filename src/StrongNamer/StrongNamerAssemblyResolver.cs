@@ -48,13 +48,17 @@ namespace StrongNamer
             return Resolve(name, new ReaderParameters());
         }
 
-        public new void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             base.Dispose(disposing);
-            if (_assemblies != null)
+            if(disposing)
             {
-                for (int i = 0; i < _assemblies.Count; i++)
+                if (_assemblies != null)
                 {
-                    _assemblies.ElementAtOrDefault(i)?.Dispose();
+                    for (int i = 0; i < _assemblies.Count; i++)
+                    {
+                        _assemblies[i]?.Dispose();
+                    }
                 }
             }
         }
