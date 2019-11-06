@@ -46,6 +46,14 @@ stages:
         version: 3.0.x
         performMultiLevelLookup: true
 
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: build
+        projects: src/StrongNamer/StrongNamer.csproj
+        configuration: $(BuildConfiguration)
+      displayName: Build StrongNamer
+
     - task: DotNetCoreCLI@2
       inputs:
         command: pack
