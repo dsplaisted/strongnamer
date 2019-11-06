@@ -51,7 +51,7 @@ stages:
       inputs:
         command: build
         projects: src/StrongNamer/StrongNamer.csproj
-        configuration: $(BuildConfiguration)
+        arguments: -p:Configuration=$(BuildConfiguration)
       displayName: Build StrongNamer
 
     - task: DotNetCoreCLI@2
