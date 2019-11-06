@@ -52,7 +52,6 @@ stages:
         packagesToPack: src/StrongNamer/StrongNamer.csproj
         configuration: $(BuildConfiguration)
         packDirectory: $(Build.ArtifactStagingDirectory)\artifacts
-        nobuild: true
       displayName: Pack StrongNamer
 
     - publish: $(Build.ArtifactStagingDirectory)\artifacts
