@@ -7,8 +7,14 @@ using System.Threading.Tasks;
 
 namespace TestLibrary
 {
+    /// <summary>
+    /// a test comment 
+    /// </summary>
     public class Class1
     {
+        /// <summary>
+        /// a test method 
+        /// </summary>
         public async Task TestAsync()
         {
             var github = new GitHubClient(new ProductHeaderValue("MyAmazingApp"));

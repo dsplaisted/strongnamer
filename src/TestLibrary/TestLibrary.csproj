@@ -10,4 +10,9 @@
   </ItemGroup>
   
   <Import Project="..\StrongNamer\bin\$(Configuration)\StrongNamer.targets" Condition="Exists('..\StrongNamer\bin\$(Configuration)\StrongNamer.targets')" />
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
 </Project>

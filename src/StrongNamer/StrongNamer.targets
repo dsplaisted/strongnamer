@@ -48,6 +48,16 @@
 
   </Target>
 
+  <Target Name="CopyStrongNamerDocTarget" AfterTargets="StrongNamerTarget">
+
+    <Copy 
+      SourceFiles="%(UnsignedAssemblies.RootDir)%(UnsignedAssemblies.Directory)%(UnsignedAssemblies.Filename).xml" 
+      DestinationFolder="$(IntermediateOutputPath)SignedAssemblies"
+      Condition="Exists('%(UnsignedAssemblies.RootDir)%(UnsignedAssemblies.Directory)%(UnsignedAssemblies.Filename).xml')" 
+      SkipUnchangedFiles="true"/>
+
+  </Target>
+
   <PropertyGroup>
     <ResolveReferencesDependsOn>$(ResolveReferencesDependsOn);StrongNamerTarget</ResolveReferencesDependsOn>
   </PropertyGroup>
