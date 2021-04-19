@@ -33,6 +33,12 @@ namespace StrongNamer
         [Required]
         public ITaskItem KeyFile { get; set; }
 
+        /// <summary>
+        /// list of assemblies has been signed
+        /// </summary>
+        [Output]
+        public ITaskItem[] UnsignedAssemblies { get; set; }
+
         public override bool Execute()
         {
             if (Assemblies == null || Assemblies.Length == 0)
@@ -64,6 +70,8 @@ namespace StrongNamer
 
             Dictionary<string, string> updatedReferencePaths = new Dictionary<string, string>();
 
+            var signedAssemblies = new List<ITaskItem>();
+
             using (var resolver = new StrongNamerAssemblyResolver(Assemblies.Select(a => a.ItemSpec)))
             {
                 for (int i = 0; i < Assemblies.Length; i++)
@@ -73,9 +81,12 @@ namespace StrongNamer
                     {
                         //  Path was updated to signed version
                         updatedReferencePaths[Assemblies[i].ItemSpec] = SignedAssembliesToReference[i].ItemSpec;
+                        signedAssemblies.Add(Assemblies[i]); //original assembly that has been signed
                     }
                 }
             }
+
+            UnsignedAssemblies = signedAssemblies.ToArray();
 
             if (CopyLocalFiles != null)
             {
