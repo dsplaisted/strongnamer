@@ -73,7 +73,7 @@ File name: 'Octokit, Version=0.16.0.0, Culture=neutral, PublicKeyToken=null'
    at Program.MainAsync()
    at Program.<MainAsyncWithErrorHandling>d__1.MoveNext() in C:\Users\daplaist\Documents\Visual Studio 2015\Projects\ConsoleApplication13\ConsoleApplication13\Program.cs:line 19](images/StrongNameSadPanda.png)
 - :disappointed:
-- Add a reference to the [StrongNamer](https://www.nuget.org/packages/strongnamer)
+- Add a reference to the [StrongNamer]
   NuGet package
 - Start without debugging (CTRL+F5)
 
@@ -92,3 +92,55 @@ to do this.
 # Options
 
 You can conditionally disable automated signing of unsigned packages by setting the "DisableStrongNamer" property to "true".  This is particularly useful if you have a custom build configuration for your application (e.g., you only wish for unsigned packages to be autosigned in specific environments).
+
+``.csproj`` Example:
+``` xml 
+<PropertyGroup>
+...
+<DisableStrongNamer>True</DisableStrongNamer>
+</PropertyGroup>
+```  
+
+# Frequently Asked Questions
+
+### [Q] I have many projects.  Which ones should I add StrongNamer to?
+
+You should add [StrongNamer] to any project that meets both of the following conditions: 
+1. **Signed** project
+2. **Directly** consume an unsigned package.
+
+#### Important
+
+You'll need to modify the StrongNamer reference so consumer projects (even Tests projects) will run the [StrongNamer] magic when they run.  
+Example:
+``` xml
+    <!--The PrivateAssets must not be removed. You can use anything but all/build-->
+    <PackageReference Include="StrongNamer" Version="0.2.5" PrivateAssets="none"/>
+```
+
+By default, the ``PrivateAssets`` value includes ``build``, which cause the [StrongNamer] magic to not propogate to dependent projects.  
+More on PrivateAssets [here.](https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets)
+
+
+### [Q] I would like to release my project as a NuGet package. Should I do something special?
+
+If you are manually editing you ``nuspec`` file, make sure to add [StrongNamer] dependency like this:
+``` xml
+<dependency id="StrongNamer" version="0.2.5" />
+```
+
+
+If you are using ``dotnet pack`` or ``MSBuild -t:pack`` to create your package (pipeline or CLI), you will need to change the ``PrivateAssets`` of the [StrongNamer] reference - Please read the **Important** section of the previous question.  
+
+This will eventually add a dependency to your .nuspec file like this:
+``` xml
+<dependency id="StrongNamer" version="0.2.5" include="All" />
+```
+
+``include="All"`` is equivalent to omitting it entirely (like in the manual ``nuspec`` method).  
+
+**Now dependent projects will run your NuGet successfully!**
+
+
+
+[StrongNamer]: https://www.nuget.org/packages/strongnamer
