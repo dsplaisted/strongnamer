@@ -103,7 +103,7 @@ You can conditionally disable automated signing of unsigned packages by setting 
 
 # Frequently Asked Questions
 
-### [Q] I have many projects. Which projects should I add StrongNamer to?
+### [Q] I have many projects.  Which ones should I add StrongNamer to?
 
 You should add [StrongNamer] to any project that meets both of the following conditions: 
 1. **Signed** project
@@ -111,7 +111,7 @@ You should add [StrongNamer] to any project that meets both of the following con
 
 #### Important
 
-You'll need to modify the StrongNamer reference so consumer projects (even Tests project) will run the [StrongNamer] magic when they run.  
+You'll need to modify the StrongNamer reference so consumer projects (even Tests projects) will run the [StrongNamer] magic when they run.  
 Example:
 ``` xml
     <!--The PrivateAssets must not be removed. You can use anything but all/build-->
@@ -122,7 +122,7 @@ By default, the ``PrivateAssets`` value includes ``build``, which cause the [Str
 More on PrivateAssets [here.](https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets)
 
 
-### [Q] I would like to release my project as a NuGet package, should I do something special?
+### [Q] I would like to release my project as a NuGet package. Should I do something special?
 
 If you are manually editing you ``nuspec`` file, make sure to add [StrongNamer] dependency like this:
 ``` xml
@@ -130,17 +130,16 @@ If you are manually editing you ``nuspec`` file, make sure to add [StrongNamer] 
 ```
 
 
-If you are using ``dotnet pack`` to create your package (pipeline or CLI), you will need to change the ``PrivateAssets`` of the [StrongNamer] reference.  
-Please read the **Important** section of the previous question.  
+If you are using ``dotnet pack`` or ``MSBuild -t:pack`` to create your package (pipeline or CLI), you will need to change the ``PrivateAssets`` of the [StrongNamer] reference - Please read the **Important** section of the previous question.  
 
 This will eventually add a dependency to your .nuspec file like this:
 ``` xml
 <dependency id="StrongNamer" version="0.2.5" include="All" />
 ```
 
-``include="All"`` is equiliant to omiting it entirely (like in the manual ``nuspec`` method).  
+``include="All"`` is equivalent to omitting it entirely (like in the manual ``nuspec`` method).  
 
-**Now dependent projects will run your NuGet successfuly!**
+**Now dependent projects will run your NuGet successfully!**
 
 
 
