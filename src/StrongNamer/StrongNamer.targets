@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <IntermediateOutputPath Condition="$(IntermediateOutputPath) == '' Or $(IntermediateOutputPath) == '*Undefined*'">$(MSBuildProjectDirectory)\obj\$(Configuration)\</IntermediateOutputPath>
-    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netcoreapp2.1\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)net7.0\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)net6.0\StrongNamer.dll</StrongNamerTaskAssemblyFile>
     <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)net461\StrongNamer.dll</StrongNamerTaskAssemblyFile>
 
     <StrongNamerMinCoreVersionRequired>2.1</StrongNamerMinCoreVersionRequired>

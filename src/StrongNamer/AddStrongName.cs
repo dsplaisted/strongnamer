@@ -156,7 +156,6 @@ namespace StrongNamer
 
 
 				var publicKey = GetPublicKey(keyBytes);
-
 				var token = GetKeyTokenFromKey(publicKey);
 
 				string formattedKeyToken = BitConverter.ToString(token).Replace("-", "");
@@ -188,10 +187,12 @@ namespace StrongNamer
 				Log.LogMessage(MessageImportance.Low, $"Writing signed assembly to {assemblyOutputPath}");
 				try
 				{
-					assembly.Write(assemblyOutputPath, new WriterParameters()
+					var parameters = new WriterParameters
 					{
-						StrongNameKeyBlob = keyBytes
-					});
+						StrongNameKeyBlob = keyBytes,
+					};
+
+					assembly.Write(assemblyOutputPath, parameters);
 				}
 				catch (Exception ex)
 				{

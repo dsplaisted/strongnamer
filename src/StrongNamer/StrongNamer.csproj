@@ -28,7 +28,8 @@
     <None Include="StrongNamer.targets" Pack="true" PackagePath="build" />
     <None Include="SharedKey.snk" Pack="true" PackagePath="build" />
     <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\net40\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
-    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\netcoreapp2.1" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net6.0" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net7.0" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.4" PrivateAssets="all" />
