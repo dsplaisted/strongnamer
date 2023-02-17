@@ -16,7 +16,7 @@
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
 
-    <CecilVersion>0.11.0</CecilVersion>
+    <CecilVersion>0.11.4</CecilVersion>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
