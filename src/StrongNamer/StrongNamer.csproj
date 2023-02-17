@@ -18,7 +18,6 @@
 
     <CecilVersion>0.11.4</CecilVersion>
     <LangVersion>latest</LangVersion>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
