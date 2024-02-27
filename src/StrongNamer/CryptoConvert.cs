@@ -32,7 +32,9 @@ using System.Security.Cryptography;
 
 namespace Mono.Security.Cryptography
 {
-
+#if NET6_0_OR_GREATER
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
 	static class CryptoConvert
 	{
 

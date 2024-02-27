@@ -2,8 +2,10 @@
 
   <PropertyGroup>
     <IntermediateOutputPath Condition="$(IntermediateOutputPath) == '' Or $(IntermediateOutputPath) == '*Undefined*'">$(MSBuildProjectDirectory)\obj\$(Configuration)\</IntermediateOutputPath>
-    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netcoreapp2.1\StrongNamer.dll</StrongNamerTaskAssemblyFile>
-    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)net461\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+	<OutDir Condition="$(OutDir) == '' Or $(OutDir) == '*Undefined*'">$(OutputPath)</OutDir>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)net7.0\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)net6.0\StrongNamer.dll</StrongNamerTaskAssemblyFile>
+    <StrongNamerTaskAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)net472\StrongNamer.dll</StrongNamerTaskAssemblyFile>
 
     <StrongNamerMinCoreVersionRequired>2.1</StrongNamerMinCoreVersionRequired>
     <!-- Our default CLI version for error checking purposes -->
@@ -11,8 +13,17 @@
     <StrongNamerNetCoreAppVersion Condition="'$(StrongNamerNetCoreAppVersion)' == ''">1.0</StrongNamerNetCoreAppVersion> 
 
 </PropertyGroup>
-
+  
   <UsingTask TaskName="StrongNamer.AddStrongName" AssemblyFile="$(StrongNamerTaskAssemblyFile)" />
+  <UsingTask TaskName="StrongNamer.CleanStrongName" AssemblyFile="$(StrongNamerTaskAssemblyFile)" />
+	<UsingTask TaskName="StrongNamer.VerifyCopiedStrongName" AssemblyFile="$(StrongNamerTaskAssemblyFile)" />
+  <Target Name="CleanStrongNamerTarget" AfterTargets="AfterClean">
+          <StrongNamer.CleanStrongName SignedAssemblyFolder="$(IntermediateOutputPath)SignedAssemblies" />
+  </Target>
+	<UsingTask TaskName="StrongNamer.VerifyCopiedStrongName" AssemblyFile="$(StrongNamerTaskAssemblyFile)" />
+	<Target Name="VerifyCopiedStrongNamerTarget" AfterTargets="AfterBuild" Condition="'$(DisableStrongNamer)' != 'true'">
+		<StrongNamer.VerifyCopiedStrongName SignedAssemblyFolder="$(IntermediateOutputPath)SignedAssemblies" CopyLocalFiles="@(ReferenceCopyLocalPaths)" OutputPathDir="$(OutDir)" />
+	</Target>
 
   <Target Name="StrongNamerTarget"
           AfterTargets="AfterResolveReferences"

@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0;net7.0</TargetFrameworks>
     <AssemblyOriginatorKeyFile>SharedKey.snk</AssemblyOriginatorKeyFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
@@ -16,24 +16,24 @@
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
 
-    <CecilVersion>0.11.0</CecilVersion>
+    <CecilVersion>0.11.5</CecilVersion>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Condition="'$(TargetFramework)' == 'net461' " Include="Microsoft.Build.Tasks.Core" Version="14.3" PrivateAssets="all" />
-    <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp2.1' " Include="Microsoft.Build.Tasks.Core" Version="15.1.548" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.9.5" PrivateAssets="all" />
   </ItemGroup>
   
   <ItemGroup>
     <None Include="StrongNamer.targets" Pack="true" PackagePath="build" />
     <None Include="SharedKey.snk" Pack="true" PackagePath="build" />
-    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\net40\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
-    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\netcoreapp2.1" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\net40\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net472" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net6.0" Visible="false" />
+    <None Include="$(NuGetPackageRoot)mono.cecil\$(CecilVersion)\lib\netstandard2.0\*.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net7.0" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="$(CecilVersion)" PrivateAssets="all" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.0.26" PrivateAssets="all" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.48-alpha" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="CopyFilesToOutputForTesting" BeforeTargets="CoreCompile">
@@ -43,7 +43,7 @@
       <FileToCopy Include="SharedKey.snk" />
     </ItemGroup>
     
-    <Copy SourceFiles="@(FileToCopy)" DestinationFolder="$(MSBuildThisFileDirectory)bin\$(Configuration)"/>
+    <Copy SourceFiles="@(FileToCopy)" DestinationFolder="$(MSBuildThisFileDirectory)bin\$(Configuration)" />
     
   </Target>
 </Project>
