@@ -1,15 +1,73 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Mono.Cecil;
 using Mono.Security.Cryptography;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
 namespace StrongNamer
 {
+
+#if NET6_0_OR_GREATER
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+	public class CleanStrongName : Task {
+		[Required]
+		public ITaskItem SignedAssemblyFolder { get; set; }
+
+		public override bool Execute() {
+			if (string.IsNullOrEmpty(SignedAssemblyFolder?.ItemSpec))
+				return true;
+
+			if (Directory.Exists(SignedAssemblyFolder.ItemSpec)) {
+				foreach (var file in Directory.GetFiles(SignedAssemblyFolder.ItemSpec, "*.dll"))
+					File.Delete(file);
+			}
+
+			return true;
+		}
+	}
+	#if NET6_0_OR_GREATER
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+	public class VerifyCopiedStrongName : Task {
+		[Required]
+		public ITaskItem SignedAssemblyFolder { get; set; }
+		[Required]
+		public ITaskItem OutputPathDir { get; set; }
+		public ITaskItem[] CopyLocalFiles { get; set; }
+
+		public override bool Execute() {
+			Log.LogMessage(MessageImportance.Low, $"VerifyCopied StrongNamer called with: {SignedAssemblyFolder?.ItemSpec} and {OutputPathDir?.ItemSpec}");
+			if (string.IsNullOrEmpty(SignedAssemblyFolder?.ItemSpec) || string.IsNullOrEmpty(OutputPathDir?.ItemSpec) || ! Directory.Exists(SignedAssemblyFolder.ItemSpec))
+				return true;
+			var fixedFiles = new List<string>();
+			//Debugger.Launch();
+			foreach (var file in Directory.GetFiles(SignedAssemblyFolder.ItemSpec, "*.dll")) {
+				var inputInfo = new FileInfo(file);
+				var outputPath = Path.Combine(OutputPathDir.ItemSpec, inputInfo.Name);
+				var outputInfo = new FileInfo(outputPath);
+				try {
+					if (outputInfo.Exists && outputInfo.Length != inputInfo.Length) {
+						File.Copy(inputInfo.FullName, outputPath,true);
+						fixedFiles.Add(inputInfo.Name);
+					}
+				} catch(Exception ex) {
+					Log.LogWarning($"Error overriding file: {outputPath} due to: {ex}");
+				}
+				
+			}
+			if (fixedFiles.Count > 0) {
+				Log.LogMessage(MessageImportance.Low, $"StrongNamer post build found unsigned file(s) in output dir that we did sign they were: {String.Join(", ",fixedFiles)}");
+			}
+
+			return true;
+		}
+	}
 #if NET6_0_OR_GREATER
 	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
@@ -56,18 +114,41 @@ namespace StrongNamer
 				Log.LogError($"KeyFile not found: ${KeyFile.ItemSpec}");
 				return false;
 			}
+			var resolverPaths = Assemblies.Select(a => a.ItemSpec).ToList();
+			Log.LogMessage(MessageImportance.Normal, $"Running StrongNamer task signed assembly target folder: {SignedAssemblyFolder.ItemSpec} key file: {KeyFile.ItemSpec} CopyLocal files: {String.Join(", ",CopyLocalFiles?.Select(a=>a?.ItemSpec) ?? new string[0])} and assembly search paths: {String.Join(", ",resolverPaths)}");
+			
+			var refOnlyAsms = resolverPaths.Where(a => a.Contains("/ref/") || a.Contains(@"\ref\")).ToArray();
+			var forcedRefPaths = new Dictionary<string, string>();
+			if (refOnlyAsms.Length > 0) {
+				var copyLocalPaths = CopyLocalFiles?.Select(a => a?.ItemSpec).ToArray();
+				if (copyLocalPaths != null) {
+					foreach (var refAsm in refOnlyAsms) {
+						var fName = new FileInfo(refAsm).Name;
+						var matchingCopyLocal = copyLocalPaths.FirstOrDefault(a => a.EndsWith($@"/{fName}",StringComparison.CurrentCultureIgnoreCase) || a.EndsWith(@$"\{fName}",StringComparison.CurrentCultureIgnoreCase));
+						if (matchingCopyLocal != null) {
+							resolverPaths[resolverPaths.IndexOf(refAsm)] = matchingCopyLocal;
+							forcedRefPaths[refAsm] = matchingCopyLocal;							
+						}
+							Log.LogMessage(MessageImportance.High, $@"Detected a reference assembly of: {refAsm} ({fName}) hopefully found a redirect to: {matchingCopyLocal}");
+					}
+					Log.LogMessage(MessageImportance.Low, $@"Final assembly search paths: {String.Join(", ", resolverPaths)}");
+				}
+			}
 
-			var keyBytes = File.ReadAllBytes(KeyFile.ItemSpec);
+				var keyBytes = File.ReadAllBytes(KeyFile.ItemSpec);
 
 			SignedAssembliesToReference = new ITaskItem[Assemblies.Length];
 
 			Dictionary<string, string> updatedReferencePaths = new Dictionary<string, string>();
 
-			using (var resolver = new StrongNamerAssemblyResolver(Assemblies.Select(a => a.ItemSpec)))
+			using (var resolver = new StrongNamerAssemblyResolver(resolverPaths))
 			{
 				for (int i = 0; i < Assemblies.Length; i++)
 				{
-					SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], keyBytes, resolver);
+
+					if (forcedRefPaths?.TryGetValue(Assemblies[i].ItemSpec, out var forcedPath) != true)
+						forcedPath = null;
+					SignedAssembliesToReference[i] = ProcessAssembly(Assemblies[i], keyBytes, resolver,forcedPath);
 					if (SignedAssembliesToReference[i].ItemSpec != Assemblies[i].ItemSpec)
 					{
 						//  Path was updated to signed version
@@ -97,7 +178,7 @@ namespace StrongNamer
 			return true;
 		}
 
-		ITaskItem ProcessAssembly(ITaskItem assemblyItem, byte[] keyBytes, StrongNamerAssemblyResolver resolver)
+		ITaskItem ProcessAssembly(ITaskItem assemblyItem, byte[] keyBytes, StrongNamerAssemblyResolver resolver, String ForcedNonReferenceAssemblyPath=null)
 		{
 			string signedAssemblyFolder = Path.GetFullPath(SignedAssemblyFolder.ItemSpec);
 			if (!Directory.Exists(signedAssemblyFolder))
@@ -134,7 +215,7 @@ namespace StrongNamer
 				return assemblyItem;
 			}
 
-			using (var assembly = AssemblyDefinition.ReadAssembly(assemblyItem.ItemSpec, new ReaderParameters()
+			using (var assembly = AssemblyDefinition.ReadAssembly(ForcedNonReferenceAssemblyPath ?? assemblyItem.ItemSpec, new ReaderParameters()
 			{
 				AssemblyResolver = resolver
 			}))

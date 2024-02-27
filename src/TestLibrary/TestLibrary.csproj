@@ -1,13 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net461;net7.0</TargetFrameworks>
+    <TargetFrameworks>net472;net7.0</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Octokit" Version="0.16.0" Condition="'$(TargetFramework)' == 'net461'" />
-    <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.3.2" Condition="'$(TargetFramework)' != 'net461'" />
+    <PackageReference Include="Octokit" Version="0.16.0" Condition="'$(TargetFramework)' == 'net472'" />
+    <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.3.2" Condition="'$(TargetFramework)' != 'net472'" />
   </ItemGroup>
   
   <Import Project="..\StrongNamer\bin\$(Configuration)\StrongNamer.targets" Condition="Exists('..\StrongNamer\bin\$(Configuration)\StrongNamer.targets')" />
